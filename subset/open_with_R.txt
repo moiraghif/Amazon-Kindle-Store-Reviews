@@ -1,0 +1,8 @@
+@FEDE
+per aprire i subset in R ci possono essere alcuni problemi
+ho visto che funziona coi parametri:
+
+`read.csv(<file>, sep="\t", quote="", header=FALSE)`
+
+occhio a `quote` che è quello decisivo, altrimenti si rischia un
+EOF prima del dovuto
