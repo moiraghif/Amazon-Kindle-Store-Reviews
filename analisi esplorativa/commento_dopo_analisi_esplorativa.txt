@@ -1,0 +1,10 @@
+@FEDE:
+ho visto che le classi sono abbastanza sbilanciate... io opterei per
+un campionamento stratificato (10'000 commenti per voto) per ciascuno
+dei due dataset e poi il resto lo possiamo usare per il test (o
+ovviamente anche solo un subset).
+Uh, e ho visto anche che non tutti i tweet contengono parole (alcuni
+solo faccine tristi e simili) o non sono in inglese, quindi bisogna
+anche ripulire da quelli.
+Estraggo un campione da ciascuno dei due dataset in una cartella ad
+hoc, poi ci divertiamo un po'.
