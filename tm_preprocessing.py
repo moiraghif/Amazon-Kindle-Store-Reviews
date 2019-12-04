@@ -18,32 +18,40 @@ def is_english(text):
 
 
 def all_numbers(txt):
-    return not bool(re.sub("\d+", "", txt))
+    return not bool(re.sub(r"\d+", "", txt))
 
 
 def clean_sentence(text):
+    text = re.sub(r"\<.+?\>", "", text)  # removes HTML tags
     text = re.sub(r"\s+", " ", text)  # "     " -> " "
     text = re.sub(r"\.{3,}", "...", text)  # ...... -> ...
     text = re.sub(r"\bim\b", "I'm", text)  # im -> I'm
     text = re.sub(r"\bdont\b", "don't", text)  # dont -> don't
     text = re.sub(r"\bdidnt\b", "didn't", text)  # didnt -> didn't
     text = re.sub(r"\bgive\sup\b", "giveup", text)  # give up -> giveup
-    text = re.sub(r"\b(have|has)\sto\b", "must", text)  # have/has to -> must
-    text  =re.sub(r"\b(is|are)\sgoing\sto\b", "will", text)  # is/are going to -> will
     #     because they are both stopwords but toghether they have a strong meaning
-    text = re.sub(r"\$\d+\s*(?:\.\d+)", "money", text)  # $0.99 -> money
-    text = re.sub(r"\d+\s*(?:\.\d+)\$", "money", text)  # 0.99$ -> money
+    text = re.sub(r"\b(have|has)\sto\b", "must", text)  # have/has to -> must
+    text = re.sub(r"\b(is|are)\sgoing\sto\b", "will", text)  # is/are going to -> will
+    text = re.sub(r"\bwon\'?t\b", "will not", text)  # wont -> will not
+    text = re.sub(r"\be(books?)\b", "$1", text)  # ebook(s) -> book(s)
+    # a lot of amazon products...
+    text = re.sub(r"\bamazon\s(?:prime|video|music|books)\b",
+                  "amazon", text)  # jsut amazon sub-sites
+    text = re.sub(r"\bkindle\s(?:edition|touch|paperwhite|paper\swhite|file|fire\shd|fire|format|unlimited|version|store)\b",
+                  "kindle", text)  # yeah, KINDLE slang is very rich!
+    text = re.sub(r"(?:\$|\€|\£)\s*\d+(?:\.\d+)", "money", text)  # $0.99 -> money
+    text = re.sub(r"\d+(?:\.\d+)\s*(?:\$|\€|\£)", "money", text)  # 0.99$ -> money
+    text = re.sub(r"\b1\s?st\b", "first", text)   # 1st -> first
+    text = re.sub(r"\b2\s?nd\b", "second", text)  # 2nd -> second
+    text = re.sub(r"\b3\s?rd\b", "third", text)   # 3rd -> third
+    text = re.sub(r"\b\d+\s?th\b", "", text)      # other ordinals are just erased
     text = re.sub(r"\Bn\'t\b", " not", text)  # SOMETHINGn't -> SOMETHING not
     return text
 
 
 def clean(word):
-    # remove ' and " if delimiters of all text
-    # word = re.sub(r"(?<=^)(?:'|\")", "", word)
-    # word = re.sub(r"(?:'|\")(?=$)", "", word)
-    word = re.sub(r"(?:'d|'m|'re|'ve'|'s|'ll)", "", word)  # remove contractions
-    word = re.sub(r"\W", "", word)  # remove punctuation
-    word = re.sub(r"n't", "not", word)  # n't -> not
+    word = re.sub(r"\'(?:d|m|re|ve|s|ll)", "", word)  # remove contractions
+    word = re.sub(r"[\W\_]", "", word)  # remove punctuation
     word = re.sub(r"\bdid\b", "do", word)  # did -> do
     word = re.sub(r"\bcould\b", "can", word)  # could -> can
     word = re.sub(r"\bwould\b", "will", word)  # would -> will
@@ -75,18 +83,27 @@ def make_ngrams(sentence, n=1):
         sentence = clean_sentence(sentence.lower())
         for s in SENT_TOKENIZER.tokenize(sentence):
             tokens = tokenize(s)
-            out += list(ngrams(tokens, n))
-    return map(lambda ngram: "_".join(ngram), out)
+            ## added
+            for ngram in ngrams(tokens, n):
+                yield "_".join(ngram)
+#             out += list(ngrams(tokens, n))
+#     return map(lambda ngram: "_".join(ngram), out)
 
 
+# standard stopwords
 try:
     STOPWORDS = {w.lower() for w in stopwords.words("english")}
 except LookupError:
     nltk.download("stopwords")
     STOPWORDS = {w.lower() for w in stopwords.words("english")}
 
-STOPWORDS |= {"also", "could", "would"}
-STOPWORDS |= {"page", "pages", "read", "review", "reviews", "write", "written"}
+# custom stopwords
+# amazon slang
+STOPWORDS |= {"amazon", "kindle", "product", "products", "item"}
+# books slang
+STOPWORDS |= {"author", "authors", "book", "books", "page", "pages", "read",
+              "review", "reviews", "write", "written"}
+# remove some stopwords that are meaningfull
 STOPWORDS -= {"few", "further", "over", "again", "no", "nor",
               "not", "only", "very"}
 
