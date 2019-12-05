@@ -17,6 +17,13 @@ def is_english(text):
         return False
 
 
+def decode(txt):
+    txt = txt[1:-1]
+    txt = re.sub(r"\\(?:n|t|r)", " ", txt)
+    txt = re.sub(r"\\('|\")", "$1", txt)
+    return txt
+
+
 def all_numbers(txt):
     return not bool(re.sub(r"\d+", "", txt))
 
@@ -63,7 +70,6 @@ def clean(word):
     return stemmer(word)
 
 
-
 def stemmer(text):
     return STEMMER.stem(text)
 
@@ -78,16 +84,13 @@ def tokenize(text):
 
 
 def make_ngrams(sentence, n=1):
-    out = []
+    sentence = decode(sentence)
     if is_english(sentence):
         sentence = clean_sentence(sentence.lower())
         for s in SENT_TOKENIZER.tokenize(sentence):
             tokens = tokenize(s)
-            ## added
             for ngram in ngrams(tokens, n):
                 yield "_".join(ngram)
-#             out += list(ngrams(tokens, n))
-#     return map(lambda ngram: "_".join(ngram), out)
 
 
 # standard stopwords
