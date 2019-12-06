@@ -3,36 +3,73 @@
 
 ## REQUIRED FILES:
 # ./main.sh
-# ./downloader.sh
 # ./tm_preprocessing.py
 # ./parser.py
-# ./subset/mapper.sh
-# ./subset/reducer.sh
-# ./creazione\ vocabolario/mapper.py
-# ./creazione\ vocabolario/reducer.py
+# ./train_test_set/sampler_mapper.py
+# ./train_test_set/sampler_reducer.py
+# ./train_test_set/train_mapper.py
+# ./train_test_set/test_mapper.py
+# ./vocab/mapper.py
+# ./vocab/reducer.py
 
-
+HADOOP_DATA="hdfs://localhost:9000"
 $HADOOP_HOME/sbin/start_all.sh
 
-# download data and move on HADOOP
-bash downloader.sh
-hadoop dfs -moveFromLocal ./data/kindle_store.json hdfs://localhost:9000/kindlestore.json
+# download data and move them on HADOOP
+mkdir "./data/"
+wget -c "http://deepyeti.ucsd.edu/jianmo/amazon/categoryFiles/Kindle_Store.json.gz" \
+     -O "./data/kindle_store.json.gz"
+gzip -d "./data/kindle_store.json.gz"
 
-# extract a stratified subset of data (memory expensive, sorry) (~ 20 min)
-hdfs dfs -cat hdfs://localhost:9000/kindlestore.json | python ./subset/mapper.py | shuf | python ./subset/reducer.py > hdfs://localhost:9000/subsample_kindle.csv
+hadoop dfs -moveFromLocal \
+       "./data/kindle_store.json" \
+       $HADOOP_DATA/kindlestore.json
+
+# extract a stratified subset of data (memory expensive, sorry) as train set
+hdfs dfs -cat $HADOOP_DATA/kindlestore.json \
+    | python "./train_test_set/sampler_mapper.py" \
+    | shuf \
+    | python "./train_test_set/sampler_reducer.py" \
+    | hdfs dfs -appendToFile - $HADOOP_DATA/train_set.csv
+
+# store documents sequential number (= index) on a file
+hdfs dfs -cat $HADOOP_DATA/train_set.csv \
+    | python "./train_test_set/train_mapper.py" \
+             > "./train_test_set/train_set_index.csv"
+
+# all other documents are considered as test set
+hdfs dfs -cat $HADOOP_DATA/kindlestore.json \
+    | python "./train_test_set/test_mapper.py" \
+    | hdfs dfs -appendToFile - $HADOOP_DATA/test_set.csv
+
 
 # create a vocaboulary from the subset (~ 10 min)
-ln -rs ./tm_preprocessing.py ./creazione\ vocabolario/
-hdfs dfs -cat hdfs://localhost:9000/subsample_kindle.csv | python ./creazione\ vocabolario/mapper.py 1 | sort | python ./creazione\ vocabolario/reducer.py > creazione\ vocabolario/vocab_1.csv
-# hdfs dfs -cat hdfs://localhost:9000/subsample_kindle.csv | python ./creazione\ vocabolario/mapper.py 2 | sort | python ./creazione\ vocabolario/reducer.py > creazione\ vocabolario/vocab_2.csv
-hdfs dfs -cat hdfs://localhost:9000/subsample_kindle.csv | python ./creazione\ vocabolario/mapper.py 3 | sort | python ./creazione\ vocabolario/reducer.py > creazione\ vocabolario/vocab_3.csv
+ln -rs "./tm_preprocessing.py" ./vocab/
+
+hdfs dfs -cat $HADOOP_DATA/train_set.csv \
+    | python "./vocab/mapper.py" 1 \
+    | sort \
+    | python "./vocab/reducer.py" \
+             > "./vocab/vocab_1.csv"
+
+hdfs dfs -cat $HADOOP_DATA/train_set.csv \
+    | python "./vocab/mapper.py" 3 \
+    | sort \
+    | python "./vocab/reducer.py" \
+             > "./vocab/vocab_3.csv"
+
 
 # encode documents using the vocaboulary (~ 20 min)
-mkdir dataset
-hdfs dfs -cat hdfs://localhost:9000/subsample_kindle.csv | python ./parser.py creazione\ vocabolario/vocab_1.csv ntf > dataset/ngram_1_ntf.csv
-hdfs dfs -cat hdfs://localhost:9000/subsample_kindle.csv | python ./parser.py creazione\ vocabolario/vocab_3.csv ntf > dataset/ngram_3_ntf.csv
+hdfs dfs -cat $HADOOP_DATA/train_set.csv \
+    | python "./parser.py" "vocab/vocab_1.csv" "ntf" \
+             > "./data/ngram_1_ntf.csv"
+
+hdfs dfs -cat $HADOOP_DATA/train_set.csv \
+    | python "./parser.py" "vocab/vocab_3.csv" "ntf" \
+             > "./data/ngram_3_ntf.csv"
+
 ## DOCUMENTATION:
-# data will be stored in a .csv file (~ 300MB) easilly readible by
+# data is now stored in a .csv file (~ 1GB) easilly readible by
 # Pandas or R
 # columns are stred in the following way:
 # index words <RATE>

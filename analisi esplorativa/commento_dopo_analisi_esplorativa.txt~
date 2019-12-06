@@ -1,6 +1,0 @@
-@FEDE:
-ho visto che le classi sono abbastanza sbilanciate...
-io opterei per un campionamento stratificato (10'000 commenti per voto)
-per ciascuno dei due dataset
-e poi il resto lo possiamo usare per il test (o ovviamente anche solo un
-subset)
