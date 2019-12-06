@@ -20,7 +20,7 @@ def is_english(text):
 def decode(txt):
     txt = txt[1:-1]
     txt = re.sub(r"\\(?:n|t|r)", " ", txt)
-    txt = re.sub(r"\\('|\")", "$1", txt)
+    txt = re.sub(r"\\(\'|\")", "$1", txt)
     return txt
 
 
