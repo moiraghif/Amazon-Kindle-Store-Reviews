@@ -1,36 +1,41 @@
-#!/usr/bin/env python
+#!/home/fede/.anaconda/bin/python
+
 
 import sys
 
 prev = ""
-n = 0
-LIM = int(sys.argv[1]) if len(sys.argv) > 1 else 3
-SEPARATOR = "\t"
+LIM = 2
+SEP = "\t"
+
 
 def counter():
     n = 0
+    
     def increase():
         nonlocal n
         n += 1
-        return n
+        return str(n - 1)
+    
     return increase
 
-n_seq = counter()
+
+def print_ngram(ngram, count):
+    if int(count) >= LIM:
+        pos = POSITION()
+        sys.stdout.write(pos + SEP + ngram + "\n")
 
 
-def print_line(line, count):
-    if count > LIM:
-        print(n_seq(), line, sep=SEPARATOR)
-        return True
-    return False
+if __name__ == "__main__":
+    POSITION = counter()
+    actual_ngram = counter()
 
+    for line in sys.stdin:
+        line = line.strip()
+        if line == prev:
+            actual_ngram()
+        else:
+            print_ngram(prev, actual_ngram())
+            prev = line
+            actual_ngram = counter()
 
-for line in sys.stdin:
-    line = line[:-1]
-    if line == prev:
-        n += 1
-    else:
-        print_line(prev, n)
-        prev = line
-        n = 0
-print_line(prev, n)
+    print_ngram(prev, actual_ngram())

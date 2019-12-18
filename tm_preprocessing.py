@@ -1,20 +1,15 @@
-#!/usr/bin/env python
+#!/home/fede/.anaconda/bin/python
 
 
 import re
 import nltk.data
-from langdetect import detect
 from nltk.tokenize.treebank import TreebankWordTokenizer
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from nltk import ngrams
 
 
-def is_english(text):
-    try:
-        return detect(text) == "en"
-    except:
-        return False
+nltk.data.path.append(".")
 
 
 def decode(txt):
@@ -40,6 +35,7 @@ def clean_sentence(text):
     text = re.sub(r"\b(have|has)\sto\b", "must", text)  # have/has to -> must
     text = re.sub(r"\b(is|are)\sgoing\sto\b", "will", text)  # is/are going to -> will
     text = re.sub(r"\bwon\'?t\b", "will not", text)  # wont -> will not
+    text = re.sub(r"\bcannot\b", "can not", text)  # cannot -> can not
     text = re.sub(r"\be(books?)\b", "$1", text)  # ebook(s) -> book(s)
     # a lot of amazon products...
     text = re.sub(r"\bamazon\s(?:prime|video|music|books)\b",
@@ -61,7 +57,7 @@ def clean(word):
     word = re.sub(r"[\W\_]", "", word)  # remove punctuation
     word = re.sub(r"\bdid\b", "do", word)  # did -> do
     word = re.sub(r"\bcould\b", "can", word)  # could -> can
-    word = re.sub(r"\bwould\b", "will", word)  # would -> will
+    word = re.sub(r"\b(?:would|should)\b", "will", word)  # would/should -> will
     word = re.sub(r"\bmight\b", "may", word)  # might -> may
     if not word or \
        word in STOPWORDS or \
@@ -85,20 +81,19 @@ def tokenize(text):
 
 def make_ngrams(sentence, n=1):
     sentence = decode(sentence)
-    if is_english(sentence):
-        sentence = clean_sentence(sentence.lower())
-        for s in SENT_TOKENIZER.tokenize(sentence):
-            tokens = tokenize(s)
-            for ngram in ngrams(tokens, n):
-                yield "_".join(ngram)
+    sentence = clean_sentence(sentence.lower())
+    for s in SENT_TOKENIZER.tokenize(sentence):
+        tokens = tokenize(s)
+        for ngram in ngrams(tokens, n):
+            yield "_".join(ngram)
 
 
 # standard stopwords
 try:
     STOPWORDS = {w.lower() for w in stopwords.words("english")}
 except LookupError:
-    nltk.download("stopwords")
-    STOPWORDS = {w.lower() for w in stopwords.words("english")}
+    with open("english", "r") as stopwords_file:
+        STOPWORDS = {w.lower().strip() for w in stopwords_file.readline()}
 
 # custom stopwords
 # amazon slang
@@ -115,7 +110,6 @@ TOKENIZER = TreebankWordTokenizer()
 try:
     SENT_TOKENIZER = nltk.data.load("tokenizers/punkt/english.pickle")
 except LookupError:
-    nltk.download("punkt")
-    SENT_TOKENIZER = nltk.data.load("tokenizers/punkt/english.pickle")
+    SENT_TOKENIZER = nltk.data.load("english.pickle")
 
 STEMMER = PorterStemmer()

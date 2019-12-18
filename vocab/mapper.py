@@ -1,13 +1,23 @@
-#!/usr/bin/env python
+#!/home/fede/.anaconda/bin/python
 
-import sys
+
 import re
+import sys
 import tm_preprocessing as nlp
 
 
-N = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+def parse(line):
+    return re.match(r"^\d+\t\w+\t\d\t(.+)", line).groups()[0]
 
-for row in sys.stdin:
-    row_id, row_rate, row_text = re.match(r"(\d+)\t(\d+)\t(.+)$", row).groups()
-    for ngram in nlp.make_ngrams(row_text, N):
+def make_ngrams(n, stream):
+    for line in stream:
+        text = parse(line)
+        for ngram in nlp.make_ngrams(text, n):
+            yield ngram
+
+N = int(sys.argv[1])
+
+
+if __name__ == "__main__":
+    for ngram in make_ngrams(N, sys.stdin):
         sys.stdout.write(ngram + "\n")
