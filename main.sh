@@ -16,16 +16,22 @@ conda create --name TextMining \
       numpy=1.17.2 \
       pandas=0.25.1 \
       # Linguistics
+      spacy=2.2.3 \
       nltk=3.4.5 \
       langdetect=1.0.7
 
 conda activate TextMining
-conda install --download-only nltk=3.4.5
 
-# install NLTK files
-python -c 'import nltk
-nltk.download("stopwords", download_dir="./nltk/")
-nltk.download("punkt",     download_dir="./nltk/")'
+
+# install SPACY files
+python -m spacy download en_core_web_sm
+python -m spacy download en_trf_robertabase_lg
+
+
+# download NLTK stopwords
+python -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")'
+cp "./nltk/corpora/stopwords/english" "./english_stopwords"
+rm -r "./nltk"
 
 
 # download data and move them on HADOOP
@@ -88,43 +94,84 @@ mapred streaming \
 
 rm "./train_test_set/train_set_index.csv"
 
-
-## TODO: spostare sull'HDFS
-# bug: non si riesce a importare nltk come pacchetto all'interno di
-# haddop
-
 # create a vocaboulary from the subset
-# (~ 10 min)
-ln -rs "./tm_preprocessing.py" "./vocab/"
+# (~ 40 min)
+mkdir "./spacy_models"
+python "parser.py" create_model
 
-hdfs dfs -cat "$HADOOP_DATA/train_set/*" \
-    | python "./vocab/mapper.py" 1 \
-    | sort \
-    | python "./vocab/reducer.py" \
-             > "./vocab/vocab_1.csv"
 
-hdfs dfs -cat "$HADOOP_DATA/train_set/*" \
-    | python "./vocab/mapper.py" 3 \
-    | sort \
-    | python "./vocab/reducer.py" \
-             > "./vocab/vocab_3.csv"
+## TODO: per ottimizzare si potrebbe tenere una copia in cache degli
+# n-grammi di ogni documento
+
+mapred streaming \
+       -files "./spacy_models" \
+       -D mapreduce.job.name="Extract vocab with mono-grams" \
+       -input "$HADOOP_DATA/train_set" \
+       -output "$HADOOP_DATA/1" \
+       -file "./english_stopwords" \
+       -file "./parser.py" \
+       -mapper "./parser.py extract_ngrams 1" \
+       -file "./vocab/reducer.py" \
+       -reducer "./vocab/reducer.py"
+
+hdfs dfs -cat "$HADOOP_DATA/vocab_1/*" > "./vocab_1.csv"
+
+
+mapred streaming \
+       -files "./spacy_models" \
+       -D mapreduce.job.name="Extract vocab with tri-grams" \
+       -input "$HADOOP_DATA/train_set" \
+       -output "$HADOOP_DATA/vocab_3" \
+       -file "./english_stopwords" \
+       -file "./parser.py" \
+       -mapper "./parser.py extract_ngrams 3" \
+       -file "./vocab/reducer.py" \
+       -reducer "./vocab/reducer.py"
+
+hdfs dfs -cat "$HADOOP_DATA/vocab_3/*" > "./vocab_3.csv"
 
 
 # encode documents using the vocaboulary
 # (~ 20 min)
-hdfs dfs -cat "$HADOOP_DATA/train_set/*" \
-    | python "./parser.py" "./vocab/vocab_1.csv" "ntf" \
-             > "./data/ngram_1_ntf.csv"
+mapred streaming \
+       -files "./spacy_models" \
+       -D mapreduce.job.name="Encoding train_set with monograms and ntf" \
+       -D mapreduce.job.reduces=0 \
+       -input "$HADOOP_DATA/train_set" \
+       -output "$HADOOP_DATA/train_set_1gram_ntf" \
+       -file "./english_stopwords" \
+       -file "./parser.py" \
+       -file "./vocab_1.csv" \
+       -mapper "./parser.py encode ntf ./vocab_1.csv"
 
-hdfs dfs -cat "$HADOOP_DATA/train_set/*" \
-    | python "./parser.py" "./vocab/vocab_3.csv" "ntf" \
-             > "./data/ngram_3_ntf.csv"
+
+mapred streaming \
+       -files "./spacy_models" \
+       -D mapreduce.job.name="Encoding train_set with trigrams and ntf" \
+       -D mapreduce.job.reduces=0 \
+       -input "$HADOOP_DATA/train_set" \
+       -output "$HADOOP_DATA/train_set_3gram_ntf" \
+       -file "./english_stopwords" \
+       -file "./parser.py" \
+       -file "./vocab_1.csv" \
+       -mapper "./parser.py encode ntf ./vocab_3.csv"
+
+
+mapred streaming \
+       -files "./spacy_models" \
+       -D mapreduce.job.name="Encoding train_set with RoBERTa" \
+       -D mapreduce.job.reduces=0 \
+       -input "$HADOOP_DATA/train_set" \
+       -output "$HADOOP_DATA/train_set_roberta" \
+       -file "./english_stopwords" \
+       -file "./parser.py" \
+       -file "./vocab_1.csv" \
+       -mapper "./parser.py encode roberta"
+
+
 
 ## DOCUMENTATION:
 # data is now stored in a .csv file (~ 1GB) easilly readible by
 # Pandas or R
 # columns are stred in the following way:
-# index words <RATE>
-#
-# RATE columns is <RATE> with < and > because there are no tokens with
-# those signs (very good).
+# index, encoding, <RATE>
