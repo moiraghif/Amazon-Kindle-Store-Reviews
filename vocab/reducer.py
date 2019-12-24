@@ -21,12 +21,10 @@ def counter():
 
 def print_ngram(ngram, count):
     if int(count) >= LIM:
-        pos = POSITION()
-        sys.stdout.write(pos + SEP + ngram + "\n")
+        sys.stdout.write(ngram + "\n")
 
 
 if __name__ == "__main__":
-    POSITION = counter()
     actual_ngram = counter()
 
     for line in sys.stdin:

@@ -7,6 +7,7 @@ import sys
 import spacy
 import pandas as pd
 import numpy as np
+from collections import Counter
 from nltk.stem.snowball import SnowballStemmer
 
 
@@ -109,40 +110,23 @@ STEMMER = SnowballStemmer("english")
 
 ### PARSING
 def read_vocab(file_path):
-    db = pd.read_csv(file_path,
-                     sep="\t",
-                     header=None,
-                     names=["number", "ngram"],
-                     index_col="ngram")
-
-    def query_position(query):
-        nonlocal db
-        if query in db.index:
-            return db.loc[query]["number"] - 1
-        return False
-
-    return query_position, list(db.index)
+    with open(file_path, "r") as vocab_file:
+        vocab = [l.strip() for l in vocab_file.readlines()]
+    return vocab
 
 
-def parse_text(text, ngram_size, method, vocab, N):
+def parse_ngrams(text, method, vocab_index):
+    if type(text) is str:
+        text = re.findall(r"\w+", text)
+    out = pd.DataFrame(data=Counter(text),
+                       index=[0],
+                       columns=vocab_index)
+    return method(out.values)
+
+
+def parse_text(text, ngram_size, method, vocab_index):
     ngrams = make_ngrams(NLP, text, ngram_size)
-    out = np.zeros((1, N))
-    for ngram in ngrams:
-        pos = vocab(ngram)
-        if pos:
-            out[0, pos] += 1
-    out[out == 0] = np.nan
-    return method(out)
-
-
-def parse_ngrams(text, method, vocab, N):
-    out = np.zeros((1, N))
-    for ngram in re.findall(r"\w+", text):
-        pos = vocab(ngram)
-        if pos:
-            out[0, pos] += 1
-    out[out == 0] = np.nan
-    return method(out)
+    return parse_ngrams(ngrams, method, vocab_index)
 
 
 def parser(method, vocab_path="", ngram_size=0, from_text=True):
@@ -152,24 +136,21 @@ def parser(method, vocab_path="", ngram_size=0, from_text=True):
         "roberta": roberta_encoder
     }
     if method != "roberta":
-        vocab, vocab_index = read_vocab(vocab_path)
         if from_text:
             encoder = functools.partial(
                 func=parse_text,
                 ngram_size=ngrams_size,
                 method=method_fn[method],
-                vocab=vocab,
-                N=len(vocab_index))
+                vocab_index=read_vocab(vocab_path))
         else:
             encoder = functools.partial(
                 func=parse_ngrams,
                 method=method_fn[method],
-                vocab=vocab,
-                N=len(vocab_index))
+                vocab_index=read_vocab(vocab_path))
     else:
         encoder = method_fn[method]
     
-    def parse_data(text, sep=","):
+    def parse_data(text, sep=SEP_CSV):
         nonlocal vocab, vocab_size, encoder
         parsed_line = encoder(text)
         return pd.DataFrame(parsed_line).to_csv(header=False, index=None, sep=sep)
@@ -227,9 +208,9 @@ if __name__ == "__main__":
                 N = len(f.readline().split("_"))
             PARSER = parser(METHOD, VOCAB_FILE, N, from_text=from_text)
         for line in sys.stdin:
-            parsed_line = re.match(r"^\d+\t\w+\t\d+\t(.+)$", line).groups()[0]
+            prev, parsed_line = re.match(r"^(\w+\t\d+\t\d+\t)(.+)$", line).groups()
             encoded_text = PARSER(parsed_line)
-            encoded_text.to_csv(sys.stdout, sep=SEP_CSV, header=False)
+            sys.stdout.write(SEP.join([prev, encoded_text]) + "\n")
         
     else:
         print("Command not recognized")
