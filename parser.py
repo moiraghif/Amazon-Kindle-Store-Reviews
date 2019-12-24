@@ -1,6 +1,7 @@
 #!/home/fede/.anaconda/bin/python
 
 
+import functools
 import re
 import sys
 import spacy
@@ -134,11 +135,17 @@ def parse_text(text, ngram_size, method, vocab, N):
     return method(out)
 
 
-def parse_list(text_list, *args):
-    return np.vstack([parse_text(text, *args) for text in text_list])
+def parse_ngrams(text, method, vocab, N):
+    out = np.zeros((1, N))
+    for ngram in re.findall(r"\w+", text):
+        pos = vocab(ngram)
+        if pos:
+            out[0, pos] += 1
+    out[out == 0] = np.nan
+    return method(out)
 
 
-def parser(method, vocab_path, ngram_size):
+def parser(method, vocab_path="", ngram_size=0, from_text=True):
     method_fn = {
         "tf": term_frequency,
         "ntf": normalized_term_frequency,
@@ -146,20 +153,26 @@ def parser(method, vocab_path, ngram_size):
     }
     if method != "roberta":
         vocab, vocab_index = read_vocab(vocab_path)
-        vocab_size = len(vocab_index)
+        if from_text:
+            encoder = functools.partial(
+                func=parse_text,
+                ngram_size=ngrams_size,
+                method=method_fn[method],
+                vocab=vocab,
+                N=len(vocab_index))
+        else:
+            encoder = functools.partial(
+                func=parse_ngrams,
+                method=method_fn[method],
+                vocab=vocab,
+                N=len(vocab_index))
     else:
-        vocab, vocab_index, vocab_size = None, None, None
-    encoder = method_fn[method]
-
-    def parse_data(index, rate, text):
+        encoder = method_fn[method]
+    
+    def parse_data(text, sep=","):
         nonlocal vocab, vocab_size, encoder
-        parsed_line = encoder(text) if method == "roberta" \
-            else  parse_text(text, ngram_size,
-                             encoder,
-                             vocab, vocab_size)
-        parsed_line = pd.DataFrame(parsed_line, index=[index])
-        parsed_line[RATE_STR] = [str(rate) + "stars"]
-        return parsed_line
+        parsed_line = encoder(text)
+        return pd.DataFrame(parsed_line).to_csv(header=False, index=None, sep=sep)
 
     return parse_data
 
@@ -175,7 +188,8 @@ def roberta_encoder(document):
 
 
 RATE_STR = "<RATE>"
-SEP = ","
+SEP = "\t"
+SEP_CSV = ","
 
 
 if __name__ == "__main__":
@@ -196,23 +210,26 @@ if __name__ == "__main__":
         N = int(sys.argv[2])
         NLP = spacy.load("./spacy_models/my-model")
         for line in sys.stdin:
-            text = re.match(r"^\d+\t\w+\t\d\t(.+)", line).groups()[0]
-            for ngram in make_ngrams(NLP, text, N):
-                sys.stdout.write(ngram + "\n")
+            prev, text = re.match(r"^(\w+\t\d+\t\d\t)(.+)", line).groups()
+            ngrams = list(make_ngrams(NLP, text, N))
+            sys.stdout.write(prev + SEP + SEP_CSV.join(ngrams) + "\n")
 
-    elif status == "encode":  # method, vocab
+    elif re.match(r"^encode", status):  # method [, vocab]
+        from_text = (status in ["encode_text", "encode_from_text"])
         METHOD = sys.argv[2]
         if METHOD == "roberta":
-            NLP, VOCAB_FILE, N = spacy.load("./spacy_models/roberta"), "", 0
+            NLP = spacy.load("./spacy_models/roberta")
+            PARSER = parser(METHOD)
         else:
-            NLP, VOCAB_FILE = spacy.load("./spacy_models/my-model"), sys.argv[3]
+            NLP = spacy.load("./spacy_models/my-model")
+            VOCAB_FILE = sys.argv[3]
             with open(VOCAB_FILE, "r") as f:
                 N = len(f.readline().split("_"))
-        PARSER = parser(METHOD, VOCAB_FILE, N)
+            PARSER = parser(METHOD, VOCAB_FILE, N, from_text=from_text)
         for line in sys.stdin:
-            parsed_line = re.match(r"^(\d+)\t\w+\t(\d+)\t(.+)$", line).groups()
-            encoded_text = PARSER(*parsed_line)
-            encoded_text.to_csv(sys.stdout, sep=SEP, header=False)
+            parsed_line = re.match(r"^\d+\t\w+\t\d+\t(.+)$", line).groups()[0]
+            encoded_text = PARSER(parsed_line)
+            encoded_text.to_csv(sys.stdout, sep=SEP_CSV, header=False)
         
     else:
         print("Command not recognized")

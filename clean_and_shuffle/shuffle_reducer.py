@@ -8,7 +8,7 @@ import sys
 SEP = "\t"
 
 
-def parse(line):  # << product, rate, text
+def parse(line):  # product, vote, rate, text
     return re.match(r"^\w+\t(\w+)\t(\d)\t(.+)",
                     line).groups()
 
@@ -23,4 +23,4 @@ def counter():
 if __name__ == "__main__":
     for i, line in zip(counter(), sys.stdin):
         product, rate, text = parse(line)
-        sys.stdout.write(SEP.join([i, product, rate, text]) + "\n")
+        sys.stdout.write(SEP.join([i, rate, text]) + "\n")

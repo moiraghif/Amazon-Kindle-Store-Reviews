@@ -26,14 +26,16 @@ def parse(json_line):
         product = re.search(r"\"asin\"\:\s\"(\w+)\"", json_line).groups()[0]
     except AttributeError:
         return None
+    vote = re.search(r"\"vote\"\:\s\"(\d+)\"", json_line)
+    vote = str(int(vote.groups()[0]) + 1) if vote else "1"
     if overall < 1 or overall > 5 or not is_english(review):
         return None
-    return str(overall), product, review
+    return str(overall), product, vote, review
 
 
 if __name__ == "__main__":
     for line in sys.stdin:
         parsed_line = parse(line)
         if parsed_line:
-            rate, product, text = parsed_line
-            sys.stdout.write(SEP.join([product, rate, text]) + "\n")
+            rate, product, vote, text = parsed_line
+            sys.stdout.write(SEP.join([product, vote, rate, text]) + "\n")

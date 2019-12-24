@@ -8,8 +8,8 @@ import sys
 SEP = "\t"
 
 
-def parse(line):
-    return re.match(r"^(\d+)\t(\w+)\t(\d)\t(.+)", line).groups()
+def parse(line):  # i, rate, text
+    return re.match(r"^(\d+)\t(\d)\t(.+)", line).groups()
 
 
 def generate_set_from_csv(file_path):
@@ -29,6 +29,6 @@ is_in_train_set = generate_set_from_csv(INDEX_FILE)
 
 if __name__ == "__main__":
     for line in sys.stdin:
-        n, product, rate, text = parse(line)
+        n, rate, text = parse(line)
         if not is_in_train_set(n):
-            sys.stdout.write(SEP.join([n, product, rate, text]) + "\n")
+            sys.stdout.write(SEP.join([n, rate, text]) + "\n")
