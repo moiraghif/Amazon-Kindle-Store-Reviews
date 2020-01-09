@@ -5,8 +5,7 @@
 - [X] Make a pipeline to process them:
   - [X] Tokenization
   - [X] Normalization
-  - [X] Compute weights
-- [X] Store documents in .csv format
+  - [ ] Compute weights
+- [ ] Store documents in .csv format
 - [ ] Try some ML models
-- [ ] Enjoying results before using some REAL model
-- [ ] Roby will use RoBERTa to humiliate us :'(
+- [ ] Enjoy yourself :)

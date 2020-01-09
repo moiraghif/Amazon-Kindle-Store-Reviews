@@ -1,18 +1,14 @@
 #!/home/fede/.anaconda/bin/python
 
 
-import functools
 import re
 import sys
 import spacy
-import pandas as pd
-import numpy as np
-from collections import Counter
 from nltk.stem.snowball import SnowballStemmer
 
 
-### PREPROCESSING
-def ngrams(sent_list, n):
+# PREPROCESSING
+def extract_ngrams(sent_list, n):
     for i in range(len(sent_list) - (n - 1)):
         yield "_".join(sent_list[i:i+n])
 
@@ -87,11 +83,11 @@ def make_ngrams(nlp, text, n=1):
                 if token_str:
                     token_str = STEMMER.stem(token_str)
                     sent_tokens.append(token_str)
-        for ngram in ngrams(sent_tokens, n):
+        for ngram in extract_ngrams(sent_tokens, n):
             yield ngram
 
 
-with open("english_stopwords", "r") as stopwords_file:
+with open("./spacy_model/english_stopwords", "r") as stopwords_file:
     STOPWORDS = {w.lower().strip() for w in stopwords_file.readlines()}
 
 # custom stopwords
@@ -106,111 +102,25 @@ STOPWORDS -= {"few", "further", "over", "again", "no", "nor",
 
 STEMMER = SnowballStemmer("english")
 
-
-
-### PARSING
-def read_vocab(file_path):
-    with open(file_path, "r") as vocab_file:
-        vocab = [l.strip() for l in vocab_file.readlines()]
-    return vocab
-
-
-def parse_ngrams(text, method, vocab_index):
-    if type(text) is str:
-        text = re.findall(r"\w+", text)
-    out = pd.DataFrame(data=Counter(text),
-                       index=[0],
-                       columns=vocab_index)
-    return method(out.values)
-
-
-def parse_text(text, ngram_size, method, vocab_index):
-    ngrams = make_ngrams(NLP, text, ngram_size)
-    return parse_ngrams(ngrams, method, vocab_index)
-
-
-def parser(method, vocab_path="", ngram_size=0, from_text=True):
-    method_fn = {
-        "tf": term_frequency,
-        "ntf": normalized_term_frequency,
-        "roberta": roberta_encoder
-    }
-    if method != "roberta":
-        if from_text:
-            encoder = functools.partial(
-                func=parse_text,
-                ngram_size=ngrams_size,
-                method=method_fn[method],
-                vocab_index=read_vocab(vocab_path))
-        else:
-            encoder = functools.partial(
-                func=parse_ngrams,
-                method=method_fn[method],
-                vocab_index=read_vocab(vocab_path))
-    else:
-        encoder = method_fn[method]
-    
-    def parse_data(text, sep=SEP_CSV):
-        nonlocal vocab, vocab_size, encoder
-        parsed_line = encoder(text)
-        return pd.DataFrame(parsed_line).to_csv(header=False, index=None, sep=sep)
-
-    return parse_data
-
-
-def term_frequency(document):
-    return document / np.nansum(document)
-
-def normalized_term_frequency(document):
-    return document / np.nanmax(document)
-
-def roberta_encoder(document):
-    return np.expand_dims(NLP(document).vector, 0)
-
-
-RATE_STR = "<RATE>"
 SEP = "\t"
-SEP_CSV = ","
 
 
 if __name__ == "__main__":
-    status = sys.argv[1]
-    
-    if status == "create_model":  # (no args)
+
+    if len(sys.argv) > 1 and sys.argv[1] == "create_model":
         NLP = spacy.load("en_core_web_sm")
         NLP.add_pipe(NLP.create_pipe('sentencizer'))
         NLP.remove_pipe("ner")
         NLP.remove_pipe("parser")
         NLP.remove_pipe("tagger")
-        NLP.to_disk("./spacy_models/my-model")
-        ROBERTA = spacy.load("en_trf_robertabase_lg")
-        ROBERTA.to_disk("./spacy_models/roberta")
+        NLP.to_disk("./spacy_model")
         print("Model created")
-        
-    elif status == "extract_ngrams":  # ngram_size
-        N = int(sys.argv[2])
-        NLP = spacy.load("./spacy_models/my-model")
+
+    else:
+        NLP = spacy.load("./spacy_model")
         for line in sys.stdin:
             prev, text = re.match(r"^(\w+\t\d+\t\d\t)(.+)", line).groups()
-            ngrams = list(make_ngrams(NLP, text, N))
-            sys.stdout.write(prev + SEP + SEP_CSV.join(ngrams) + "\n")
-
-    elif re.match(r"^encode", status):  # method [, vocab]
-        from_text = (status in ["encode_text", "encode_from_text"])
-        METHOD = sys.argv[2]
-        if METHOD == "roberta":
-            NLP = spacy.load("./spacy_models/roberta")
-            PARSER = parser(METHOD)
-        else:
-            NLP = spacy.load("./spacy_models/my-model")
-            VOCAB_FILE = sys.argv[3]
-            with open(VOCAB_FILE, "r") as f:
-                N = len(f.readline().split("_"))
-            PARSER = parser(METHOD, VOCAB_FILE, N, from_text=from_text)
-        for line in sys.stdin:
-            prev, parsed_line = re.match(r"^(\w+\t\d+\t\d+\t)(.+)$", line).groups()
-            encoded_text = PARSER(parsed_line)
-            sys.stdout.write(SEP.join([prev, encoded_text]) + "\n")
-        
-    else:
-        print("Command not recognized")
+            sys.stdout.write(prev)
+            for ngram in make_ngrams(NLP, text):
+                sys.stdout.write(ngram + " ")
+            sys.stdout.write("\n")
