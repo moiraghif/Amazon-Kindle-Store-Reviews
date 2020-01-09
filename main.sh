@@ -1,31 +1,28 @@
 #!/bin/bash
 
 
-HADOOP_DATA="hdfs://localhost:9000/TextMining"
-start-dfs.sh
-start-yarn.sh
+# {{{ per @PK:
+# potresti per favore mettere queste cose nell'init del docker? :)
+export HADOOP_DATA="hdfs://localhost:9000/TextMining"
+# export HADOOP_HOME=/path/to/hadoop
+# export SPARK_HOME=/path/to/spark
 
-echo "Waiting for Hadoop to be ready"
-sleep 10
-
-# create conda environment
 conda create --name TextMining \
       python=3.7.4 \
       # Math
       numpy=1.17.2 \
       pandas=0.25.1 \
-      pyspark=2.4.4 \
       # Linguistics
       spacy=2.2.3 \
       nltk=3.4.5 \
       langdetect=1.0.7
 
 conda activate TextMining
+# }}}
 
 
 # install SPACY files
 python -m spacy download en_core_web_sm
-python -m spacy download en_trf_robertabase_lg
 
 mkdir "./spacy_models"
 python "./parser.py" "create_model"
@@ -77,7 +74,15 @@ mapred streaming \
        -output "$HADOOP_DATA/tokens/" \
        -mapper "./parser.py extract_tokens"
 
-## DOCUMENTATION:
-# data is now stored in a .csv file easilly readible by Pandas or R
-# columns are stred in the following way:
-# index, encoding, <RATE>
+
+cd spark_program
+
+
+# SPARK
+
+# look how it is easy to compile it :D
+rmdir lib/
+ln -s $SPARK_HOME/jars ./lib
+sbt clean compile package
+
+$SPARK_HOME/bin/spark-submit target/scala*/spark_program*.jar
