@@ -9,40 +9,11 @@ import org.apache.spark.ml.feature.NGram;
 import org.apache.spark.ml.feature.{Tokenizer, RegexTokenizer};
 import org.apache.spark.ml.feature.{HashingTF, IDF};
 
+import nlp.functions._;
+import statistics.functions._;
+
 
 object TextMining {
-
-  def get_tokens(df: DataFrame, in: String, out: String): DataFrame = {
-    val regexTokenizer = new RegexTokenizer()
-      .setInputCol(in)
-      .setOutputCol(out)
-      .setPattern("\\W");
-
-    regexTokenizer.transform(df);
-  }
-
-  def get_ngrams(df: DataFrame, n:Int, in: String, out: String): DataFrame = {
-    val ngram = new NGram()
-      .setN(n)
-      .setInputCol(in)
-      .setOutputCol(out);
-
-    ngram.transform(df);
-  }
-
-  def calc_tfidf(df: DataFrame, in: String): DataFrame = {
-    val tfModel = new HashingTF()
-      .setInputCol(in)
-      .setOutputCol("tf");
-    
-    val idfModel = new IDF()
-      .setInputCol("tf")
-      .setOutputCol("tfidf");
-
-    val tf = tfModel.transform(df);
-
-    idfModel.fit(tf).transform(tf);
-  }
 
   def main(args: Array[String]) {
 
@@ -59,7 +30,7 @@ object TextMining {
     val original_schema = new StructType(Array(
       StructField("product", StringType,  true),
       StructField("votes",   IntegerType, true),
-      StructField("rate",    IntegerType, true),
+      StructField("rate",    DoubleType, true),
       StructField("text",    StringType,  true)));
 
     val original_data:DataFrame = spark.read
@@ -67,17 +38,13 @@ object TextMining {
       .schema(original_schema)
       .csv(path);
 
+    val data : DataFrame = get_tokens(original_data.na.drop(), "text", "words");
 
-    val df = get_tokens(original_data.na.drop(), "text", "words")
-    val df2 = get_ngrams(df, 2, "words", "2grams");
-
-    // calc tfidf
-    val df2_tfidf = calc_tfidf(df2, "2grams");
+    val (y2, x2) = get_y_x(data, 2);
 
     // print results
-    println("\n\n");
-    println(df2_tfidf.show());
-    println("\n\n");
+    println(x2.show());
+    println(y2.show());
 
     spark.stop();
   }
