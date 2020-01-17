@@ -1,0 +1,73 @@
+Training... done!
+
+
+
+{
+	ngram_2fa11f2a5665-n: 1,
+	logreg_9dfa45222fff-regParam: 0.01
+}
+0.9014116754779188
+
+
+
+{
+	ngram_2fa11f2a5665-n: 1,
+	logreg_9dfa45222fff-regParam: 0.05
+}
+0.90317045840867
+
+
+
+{
+	ngram_2fa11f2a5665-n: 1,
+	logreg_9dfa45222fff-regParam: 0.1
+}
+0.9030614777099552
+
+
+
+{
+	ngram_2fa11f2a5665-n: 2,
+	logreg_9dfa45222fff-regParam: 0.01
+}
+0.8979837603869956
+
+
+
+{
+	ngram_2fa11f2a5665-n: 2,
+	logreg_9dfa45222fff-regParam: 0.05
+}
+0.9039490521677286
+
+
+
+{
+	ngram_2fa11f2a5665-n: 2,
+	logreg_9dfa45222fff-regParam: 0.1
+}
+0.9064004255554753
+
+
+
+{
+	ngram_2fa11f2a5665-n: 3,
+	logreg_9dfa45222fff-regParam: 0.01
+}
+0.7611904491811202
+
+
+
+{
+	ngram_2fa11f2a5665-n: 3,
+	logreg_9dfa45222fff-regParam: 0.05
+}
+0.7682802589570589
+
+
+
+{
+	ngram_2fa11f2a5665-n: 3,
+	logreg_9dfa45222fff-regParam: 0.1
+}
+0.7720402338150176
