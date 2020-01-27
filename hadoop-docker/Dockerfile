@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER paperinik
 
 ARG HADOOP_VER=3.2.1
@@ -34,33 +34,21 @@ ENV YARN_NODEMANAGER_USER=root
 
 RUN hdfs namenode -format
 
-#DONWNLOAD ANACONDA
-RUN wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh && \
-    bash Anaconda3-2019.10-Linux-x86_64.sh -b -p /opt/conda && \
-    rm Anaconda3-2019.10-Linux-x86_64.sh && \
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo "conda activate base" >> ~/.bashrc
-
-ENV PATH /opt/conda/bin:$PATH
-
 #PYTHON LIBRARIES
-RUN conda config --append channels conda-forge && \
-    conda install -y \
-      python=3.7.4 \
+RUN python3 -m pip install --upgrade pip &&\
+    python3 -m pip install \
       # Math
-      numpy=1.17.2 \
-      pandas=0.25.1 \
+      numpy==1.17.2 \
+      pandas==0.25.1 \
       # Linguistics
-      spacy=2.2.3 \
-      nltk=3.4.5 \
-      langdetect=1.0.7 &&\
-      conda init
-
-RUN pip install pycld2
+      spacy==2.2.3 \
+      nltk==3.4.5 \
+      langdetect==1.0.7 \
+      pycld2==0.41 \
+      notebook
 
 # INSTALL SPACY FILES
-RUN python -m spacy download en_core_web_sm
+RUN python3 -m spacy download en_core_web_sm
 
 
 #INSTALL SPARK
@@ -68,11 +56,19 @@ RUN python -m spacy download en_core_web_sm
 
 
 
-WORKDIR /
+RUN mkdir /Project
 
-RUN mkdir Project && mkdir Project/spacy_model && mkdir Project/data
-COPY ./ Project/
-RUN python -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")' && cp ./nltk/corpora/stopwords/english Project/spacy_model/english_stopwords && rm -r ./nltk
+COPY ./ /Project/
+
+RUN mkdir /Project/spacy_model && mkdir /Project/data 
+
+WORKDIR /Project/
+
+RUN python3 -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")' && cp ./nltk/corpora/stopwords/english ./spacy_model/english_stopwords && rm -r ./nltk
+
+RUN python3 parser.py create_model
+
+WORKDIR /
 
 RUN wget -c "http://deepyeti.ucsd.edu/jianmo/amazon/categoryFiles/Kindle_Store.json.gz" \
      -O "Project/data/kindle_store.json.gz" && \
