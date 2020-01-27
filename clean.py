@@ -1,20 +1,26 @@
-#!/home/fede/.anaconda/bin/python
+#!/opt/conda/bin/python
 
 
 import re
 import sys
-from langdetect import detect
+#from langdetect import detect
+from pycld2 import detect
 
 
 SEP = "\t"
 
 
-def is_english(text):
-    try:
-        return detect(text) == "en"
-    except:
-        return False
+#def is_english(text):
+#    try:
+#        return detect(text) == "en"
+#    except:
+#        return False
 
+def is_english(text):
+    isReliable, textBytesFound, details = detect(text)
+    if isReliable and (details[0][0] == 'ENGLISH'):
+        return True
+    return False
 
 def parse(json_line):
     try:

@@ -7,7 +7,7 @@ export HADOOP_DATA="hdfs://localhost:9000/TextMining"
 # export HADOOP_HOME=/path/to/hadoop
 # export SPARK_HOME=/path/to/spark
 
-conda create --name TextMining \
+conda create --name TextMining \ #done
       python=3.7.4 \
       # Math
       numpy=1.17.2 \
@@ -17,33 +17,33 @@ conda create --name TextMining \
       nltk=3.4.5 \
       langdetect=1.0.7
 
-conda activate TextMining
+conda activate TextMining #not needed it's already a virtual env 
 # }}}
 
 
 # install SPACY files
-python -m spacy download en_core_web_sm
+python -m spacy download en_core_web_sm #done
 
-mkdir "./spacy_models"
-python "./parser.py" "create_model"
+mkdir "./spacy_models" #done
+python "./parser.py" "create_model" #done
 
 
 # download NLTK stopwords
-python -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")'
-cp "./nltk/corpora/stopwords/english" "./spacy_model/english_stopwords"
-rm -r "./nltk"
+python -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")' #done
+cp "./nltk/corpora/stopwords/english" "./spacy_model/english_stopwords" #done
+rm -r "./nltk" #done
 
 
 # download data and move them on HADOOP
-mkdir "./data/"
+mkdir "./data/"  #done
 wget -c "http://deepyeti.ucsd.edu/jianmo/amazon/categoryFiles/Kindle_Store.json.gz" \
-     -O "./data/kindle_store.json.gz"
-gzip -d "./data/kindle_store.json.gz"
+     -O "./data/kindle_store.json.gz" #done
+gzip -d "./data/kindle_store.json.gz" #done
 
 
-hdfs dfs -mkdir "$HADOOP_DATA"
-hdfs dfs -mkdir "$HADOOP_DATA/original_data"
-hdfs dfs -moveFromLocal \
+hdfs dfs -mkdir "$HADOOP_DATA" #done
+hdfs dfs -mkdir "$HADOOP_DATA/original_data" #done
+hdfs dfs -moveFromLocal \ #done
      "./data/kindle_store.json" \
      "$HADOOP_DATA/original_data/kindlestore.json"
 
@@ -53,12 +53,12 @@ hdfs dfs -moveFromLocal \
 # >>> json file
 # <<< product \t vote \t rate \t text
 # sorted by product
-mapred streaming \
-       -files "./clean.py" \
+mapred streaming \ #need to test but seems ok now
+       -files "/Project/clean.py" \
        -D mapreduce.job.name="Normalize data & Remove useless reviews" \
        -input "$HADOOP_DATA/original_data/" \
        -output "$HADOOP_DATA/cleaned_data/" \
-       -mapper "./clean.py"
+       -mapper "clean.py"
 
 
 # extract n-grams from the whole collection
