@@ -3,6 +3,7 @@ MAINTAINER paperinik
 
 ARG HADOOP_VER=3.2.1
 ARG JAVA_VER=8
+ARG SPARK_VER=3.0.0
 
 RUN apt update
 RUN apt install -y openjdk-${JAVA_VER}-jdk openjdk-${JAVA_VER}-jre  openssh-client openssh-server python3 python3-pip wget
@@ -11,8 +12,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VER}-openjdk-amd64
 ENV JRE_HOME=/usr/lib/jvm/java-${JAVA_VER}-openjdk-amd64/jre
 
 #DOWNLOAD AND CONFIGURE HADOOP
-RUN wget http://it.apache.contactlab.it/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
-RUN tar xvfz hadoop-${HADOOP_VER}.tar.gz &&  mv hadoop-${HADOOP_VER} /hadoop && rm hadoop-${HADOOP_VER}.tar.gz
+RUN wget http://it.apache.contactlab.it/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz && tar xvfz hadoop-${HADOOP_VER}.tar.gz &&  mv hadoop-${HADOOP_VER} /hadoop && rm hadoop-${HADOOP_VER}.tar.gz
 
 ENV HADOOP_HOME /hadoop
 ENV PATH $PATH:/$HADOOP_HOME/bin:/$HADOOP_HOME/sbin
@@ -52,7 +52,11 @@ RUN python3 -m spacy download en_core_web_sm
 
 
 #INSTALL SPARK
-#http://it.apache.contactlab.it/spark/spark-3.0.0-preview2/spark-3.0.0-preview2-bin-hadoop3.2.tgz
+RUN wget http://it.apache.contactlab.it/spark/spark-{SPARK_VER}-preview2/spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  tar xvfz spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  mv spark-${SPARK_VER}-preview2-bin-hadoop3.2 /spark && rm spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz
+
+ENV SPARK_HOME /spark
+ENV PATH $PATH:/$SPARK_HOME/bin:/$SPARK_HOME/sbin
+ENV PYTHONPATH=$PYTHON_PATH:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.8.1-src.zip
 
 
 
@@ -83,6 +87,9 @@ EXPOSE 19888
 EXPOSE 8030 8031 8032 8033 8040 8042 8088
 #Other ports
 EXPOSE 49707 2122 9000
+#SPARK PORTS
+EXPOSE 4040 4041 8080
+#4041 is a backup in case there are two sessions
 
 RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ""
 RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
