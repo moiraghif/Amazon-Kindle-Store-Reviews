@@ -33,14 +33,13 @@ mapred streaming \
        -mapper "parser.py" \
        -file "/Project/parser.py"
 
-cd spark_program
+cd /Project/spark_program
 
 
 # SPARK
 
 # look how it is easy to compile it :D
-mkdir lib/
-ln -s $SPARK_HOME/jars ./lib
+ln -s $SPARK_HOME/jars /Project/spark_program/lib
 sbt clean compile package
 
-$SPARK_HOME/bin/spark-submit target/scala*/spark_program*.jar
+$SPARK_HOME/bin/spark-submit /Project/spark_program/target/scala*/spark_program*.jar

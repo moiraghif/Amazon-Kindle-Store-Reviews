@@ -6,7 +6,7 @@ ARG JAVA_VER=8
 ARG SPARK_VER=3.0.0
 
 RUN apt update
-RUN apt install -y openjdk-${JAVA_VER}-jdk openjdk-${JAVA_VER}-jre  openssh-client openssh-server python3 python3-pip wget
+RUN apt install -y openjdk-${JAVA_VER}-jdk openjdk-${JAVA_VER}-jre  openssh-client openssh-server python3 python3-pip wget curl
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VER}-openjdk-amd64
 ENV JRE_HOME=/usr/lib/jvm/java-${JAVA_VER}-openjdk-amd64/jre
@@ -52,11 +52,16 @@ RUN python3 -m spacy download en_core_web_sm
 
 
 #INSTALL SPARK
-RUN wget http://it.apache.contactlab.it/spark/spark-{SPARK_VER}-preview2/spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  tar xvfz spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  mv spark-${SPARK_VER}-preview2-bin-hadoop3.2 /spark && rm spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz
+RUN wget http://it.apache.contactlab.it/spark/spark-${SPARK_VER}-preview2/spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  tar xvfz spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  mv spark-${SPARK_VER}-preview2-bin-hadoop3.2 /spark && rm spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz
+
+RUN wget https://dl.bintray.com/sbt/debian/sbt-1.3.4.deb && dpkg -i sbt-1.3.4.deb &&\
+	rm sbt-1.3.4.deb
+
+RUN wget https://downloads.lightbend.com/scala/2.12.10/scala-2.12.10.deb && dpkg -i scala-2.12.10.deb && rm scala-2.12.10.deb
 
 ENV SPARK_HOME /spark
 ENV PATH $PATH:/$SPARK_HOME/bin:/$SPARK_HOME/sbin
-ENV PYTHONPATH=$PYTHON_PATH:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.8.1-src.zip
+ENV PYTHONPATH $PYTHON_PATH:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.8.1-src.zip
 
 
 
