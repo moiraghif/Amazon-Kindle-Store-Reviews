@@ -1,0 +1,51 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{cld2}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=140f3f1af8537ad5e6f9e6ef92c046d8}{%
+           family={Thoma},
+           familyi={T\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{140f3f1af8537ad5e6f9e6ef92c046d8}
+      \strng{fullhash}{140f3f1af8537ad5e6f9e6ef92c046d8}
+      \strng{bibnamehash}{140f3f1af8537ad5e6f9e6ef92c046d8}
+      \strng{authorbibnamehash}{140f3f1af8537ad5e6f9e6ef92c046d8}
+      \strng{authornamehash}{140f3f1af8537ad5e6f9e6ef92c046d8}
+      \strng{authorfullhash}{140f3f1af8537ad5e6f9e6ef92c046d8}
+      \field{sortinit}{T}
+      \field{sortinithash}{51f9faf24c60c62ca764a77f78cf5666}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eprintclass}{cs.CV}
+      \field{eprinttype}{arXiv}
+      \field{title}{The WiLI benchmark dataset for written language identification}
+      \field{year}{2018}
+      \verb{eprint}
+      \verb 1801.07779
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
