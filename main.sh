@@ -11,6 +11,9 @@
 # <<< product \t vote \t rate \t text
 # sorted by product
  #need to test but seems ok now
+
+export HADOOP_DATA="hdfs://localhost:9000/TextMining"
+
 mapred streaming \
        -files "/Project/clean.py" \
        -D mapreduce.job.name="Normalize data & Remove useless reviews" \
@@ -33,13 +36,25 @@ mapred streaming \
        -mapper "parser.py" \
        -file "/Project/parser.py"
 
+
+#mapred streaming \
+#       -files "/Project/spacy_model" \
+#       -D mapreduce.job.name="Clean data" \
+#       -D mapreduce.job.reduces=0 \
+#       -input "$HADOOP_DATA/cleaned_data/" \
+#       -output "$HADOOP_DATA/lemma_tokens/" \
+#       -mapper "parser.py" \
+#       -file "/Project/parser.py"
+
 cd /Project/spark_program
 
 
 # SPARK
 
-# look how it is easy to compile it :D
-ln -s $SPARK_HOME/jars /Project/spark_program/lib
-sbt clean compile package
+#No need now, use the notebook instead
 
-$SPARK_HOME/bin/spark-submit /Project/spark_program/target/scala*/spark_program*.jar
+# look how it is easy to compile it :D
+#ln -s $SPARK_HOME/jars /Project/spark_program/lib
+#sbt clean compile package
+
+#$SPARK_HOME/bin/spark-submit /Project/spark_program/target/scala*/spark_program*.jar

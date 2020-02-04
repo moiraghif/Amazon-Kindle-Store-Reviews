@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 
 import re
@@ -119,8 +119,10 @@ if __name__ == "__main__":
     else:
         NLP = spacy.load("./spacy_model")
         for line in sys.stdin:
-            prev, text = re.match(r"^(\w+\t\d+\t\d\t)(.+)", line).groups()
-            sys.stdout.write(prev)
+            prev, text, summary = re.match(r"^(\w+\t\d+\t\d\t)(.+)\t(.+)", line).groups()
+            sys.stdout.write(prev)            
+            sys.stdout.write(text+"\t")
             for ngram in make_ngrams(NLP, text):
                 sys.stdout.write(ngram + " ")
+            sys.stdout.write("\t" + summary)
             sys.stdout.write("\n")
