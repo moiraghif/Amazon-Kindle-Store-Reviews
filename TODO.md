@@ -6,6 +6,12 @@
   - [X] Tokenization
   - [X] Normalization
   - [ ] Compute weights
-- [ ] Store documents in .csv format
-- [ ] Try some ML models
+- [x] Store documents in .csv format
+- [x] Try some ML models
+- [x] Clustering
+- [x] Recommender System
+- [x] LDA - Topic Modeling
+- [ ] Comment/Decomment the main.sh
+- [ ] Create the final docker image and push it
+- [ ] Create the docker-compose from the pused image
 - [ ] Enjoy yourself :)

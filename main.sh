@@ -36,17 +36,7 @@ mapred streaming \
        -mapper "parser.py" \
        -file "/Project/parser.py"
 
-
-#mapred streaming \
-#       -files "/Project/spacy_model" \
-#       -D mapreduce.job.name="Clean data" \
-#       -D mapreduce.job.reduces=0 \
-#       -input "$HADOOP_DATA/cleaned_data/" \
-#       -output "$HADOOP_DATA/lemma_tokens/" \
-#       -mapper "parser.py" \
-#       -file "/Project/parser.py"
-
-cd /Project/spark_program
+#cd /Project/spark_program
 
 
 # SPARK

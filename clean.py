@@ -29,6 +29,11 @@ def parse(json_line):
         review = re.search(r"\"reviewText\"\:\s\"(.+?)(?<!\\)\"(?=,)",
                            json_line).groups()[0]
         review = "\"" + review + "\""
+
+        reviewerID = re.search(r"\"reviewerID\"\:\s\"(.+?)(?<!\\)\"(?=,)",
+                           json_line).groups()[0]
+        reviewerID = "\"" + reviewerID + "\""
+
         product = re.search(r"\"asin\"\:\s\"(\w+)\"", json_line).groups()[0]
         summary = re.search(r"\"summary\"\:\s\"(.+?)(?<!\\)\"(?=,)",
                            json_line).groups()[0]
@@ -39,12 +44,12 @@ def parse(json_line):
     vote = str(int(vote.groups()[0]) + 1) if vote else "1"
     if overall < 1 or overall > 5 or not is_english(review):
         return None
-    return str(overall), product, vote, review, summary
+    return str(overall), product, vote, reviewerID, review, summary
 
 
 if __name__ == "__main__":
     for line in sys.stdin:
         parsed_line = parse(line)
         if parsed_line:
-            rate, product, vote, text, summary = parsed_line
-            sys.stdout.write(SEP.join([product, vote, rate, text, summary]) + "\n")
+            rate, product, vote, reviewerID, text, summary = parsed_line
+            sys.stdout.write(SEP.join([product, vote, rate, reviewerID, text, summary]) + "\n")
