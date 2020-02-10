@@ -1,4 +1,4 @@
-# Sentiment Analysis with RoBERTa using Amazon reviews
+# Text Analysis using Amazon reviews
 
 Trying to guess number of stars on a subset of [amazon products](https://nijianmo.github.io/amazon/index.html) 
 (containing only books and kindle store reviews) using natural text as input variable.
@@ -20,3 +20,7 @@ It takes around 1-2 hours depending your machine: tested with 8 cores and 12 cor
 ## The jupyter notebooks
 
 Now that the data is completely ready, just start the jupyter-notebook and open any of the jupyter notebook, the port 8888 should be mapped on your port 8888.
+
+The [Regression_scala.ipynb](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/Regression_scala.ipynb) contains the spark code written in scala regarding the two classification tasks.
+
+The [pyspark_notebook.ipynb](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/pyspark_notebook.ipynb) contains al the spark code written in python regarding all the other tasks, they are separated with header title.
