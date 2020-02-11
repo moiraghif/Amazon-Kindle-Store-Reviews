@@ -1,10 +1,5 @@
 #!/bin/bash
 
-
-# {{{ per @PK:
-# potresti per favore mettere queste cose nell'init del docker? :)
-
-
 # clean all data removing non-English comments and missing values
 # (~ few minutes)
 # >>> json file
@@ -23,9 +18,7 @@ mapred streaming \
 
 
 # extract n-grams from the whole collection
-# (~ 30 min)
-# >>> product \t vote \t rate \t text
-# <<< product \t vote \t rate \t ngrams
+# (~ 30 min to ~1 hour)
 # sorted by product
 mapred streaming \
        -files "/Project/spacy_model" \
@@ -36,15 +29,3 @@ mapred streaming \
        -mapper "parser.py" \
        -file "/Project/parser.py"
 
-#cd /Project/spark_program
-
-
-# SPARK
-
-#No need now, use the notebook instead
-
-# look how it is easy to compile it :D
-#ln -s $SPARK_HOME/jars /Project/spark_program/lib
-#sbt clean compile package
-
-#$SPARK_HOME/bin/spark-submit /Project/spark_program/target/scala*/spark_program*.jar
