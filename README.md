@@ -15,7 +15,9 @@ As soon as the docker starts, it will automatically start HDFS daemon and transf
 
 #### **To use the docker image already created and uploaded to docker hub(it's faster):**
 
-Run `docker run -it -p 8888:8888 -p 4040:4040 pkasela/amazon_review_hadoop_spark:final` in the project folder and wait :).
+Run anywhere:
+`docker run -it -p 8888:8888 -p 4040:4040 pkasela/amazon_review_hadoop_spark:final` 
+It contains the code folder and everything necessary for it to work.
 
 
 ## Data Preparation
