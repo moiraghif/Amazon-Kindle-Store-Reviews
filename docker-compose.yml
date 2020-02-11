@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+    amazon_docker:
+        image: pkasela/amazon_review_hadoop_spark
+        container_name: amazon_in_apache
+        ports:
+            - 8088:8088
+            - 4040:4040
+            - 4041:4041
+            - 8888:8888
+        

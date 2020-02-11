@@ -46,15 +46,21 @@ RUN python3 -m pip install --upgrade pip &&\
       # Math
       numpy==1.17.2 \
       pandas==0.25.1 \
+      #plotting
+      matplotlib\
+      seaborn\
       # Linguistics
       spacy==2.2.3 \
       nltk==3.4.5 \
       langdetect==1.0.7 \
       pycld2==0.41 \
-      notebook
+      notebook\
+      #scala kernel
+      spylon-kernel
 
 # INSTALL SPACY FILES
-RUN python3 -m spacy download en_core_web_sm
+RUN python3 -m spacy download en_core_web_sm && \
+    python3 -m spylon_kernel install
 
 
 #INSTALL SPARK
@@ -116,4 +122,4 @@ ENV HADOOP_DATA "hdfs://localhost:9000/TextMining"
 
 WORKDIR /Project
 
-ENTRYPOINT ./start.sh
+ENTRYPOINT ../start.sh
