@@ -8,12 +8,12 @@ Special tanks to [Jianmo Ni](https://nijianmo.github.io/) for let us download hi
 
 ## Docker Creation
 
-To create docker without the docker hub (might take a lot of time):
+#### **To create docker without the docker hub (might take a lot of time):**
 
 Execute [`./docker_builder.sh`](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/docker_builder.sh): this script will create the docker environment; it will take time, otherwise use the docker-compose file to download one already created and pushed to the docker hub. 
 As soon as the docker starts, it will automatically start HDFS daemon and transfer the data into Hadoop File System (using the [./hadoop-docker/start.sh](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/hadoop-docker/start.sh) script as entry point). 
 
-Use the docker image already created and uploaded to docker hub:
+#### **To use the docker image already created and uploaded to docker hub:**
 
 Run `docker-compose up` in the project folder and wait :).
 
