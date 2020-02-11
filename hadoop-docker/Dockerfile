@@ -4,15 +4,21 @@ MAINTAINER paperinik
 ARG HADOOP_VER=3.2.1
 ARG JAVA_VER=8
 ARG SPARK_VER=3.0.0
+ARG SCALA_VER=2.12.10
 
 RUN apt update
-RUN apt install -y openjdk-${JAVA_VER}-jdk openjdk-${JAVA_VER}-jre  openssh-client openssh-server python3 python3-pip wget curl
+RUN apt install -y openjdk-${JAVA_VER}-jdk openjdk-${JAVA_VER}-jre \
+                   openssh-client openssh-server \
+                   python3 python3-pip wget curl
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VER}-openjdk-amd64
 ENV JRE_HOME=/usr/lib/jvm/java-${JAVA_VER}-openjdk-amd64/jre
 
 #DOWNLOAD AND CONFIGURE HADOOP
-RUN wget http://it.apache.contactlab.it/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz && tar xvfz hadoop-${HADOOP_VER}.tar.gz &&  mv hadoop-${HADOOP_VER} /hadoop && rm hadoop-${HADOOP_VER}.tar.gz
+RUN wget http://it.apache.contactlab.it/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz && \
+    tar xvfz hadoop-${HADOOP_VER}.tar.gz && \
+    mv hadoop-${HADOOP_VER} /hadoop && \
+    rm hadoop-${HADOOP_VER}.tar.gz
 
 ENV HADOOP_HOME /hadoop
 ENV PATH $PATH:/$HADOOP_HOME/bin:/$HADOOP_HOME/sbin
@@ -52,16 +58,18 @@ RUN python3 -m spacy download en_core_web_sm
 
 
 #INSTALL SPARK
-RUN wget http://it.apache.contactlab.it/spark/spark-${SPARK_VER}-preview2/spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  tar xvfz spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz &&  mv spark-${SPARK_VER}-preview2-bin-hadoop3.2 /spark && rm spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz
+RUN wget http://it.apache.contactlab.it/spark/spark-${SPARK_VER}-preview2/spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz && \
+    tar xvfz spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz && \
+    mv spark-${SPARK_VER}-preview2-bin-hadoop3.2 /spark && \
+    rm spark-${SPARK_VER}-preview2-bin-hadoop3.2.tgz
 
-RUN wget https://dl.bintray.com/sbt/debian/sbt-1.3.4.deb && dpkg -i sbt-1.3.4.deb &&\
-	rm sbt-1.3.4.deb
-
-RUN wget https://downloads.lightbend.com/scala/2.12.10/scala-2.12.10.deb && dpkg -i scala-2.12.10.deb && rm scala-2.12.10.deb
+RUN wget https://downloads.lightbend.com/scala/${SCALA_VER}/scala-${SCALA_VER}.deb && \
+    dpkg -i scala-${SCALA_VER}.deb && \
+    rm scala-${SCALA_VER}.deb
 
 ENV SPARK_HOME /spark
-ENV PATH $PATH:/$SPARK_HOME/bin:/$SPARK_HOME/sbin
-ENV PYTHONPATH $PYTHON_PATH:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.8.1-src.zip
+ENV PATH $PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+ENV PYTHONPATH $PYTHONPATH:$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.8.1-src.zip
 
 
 
@@ -73,7 +81,9 @@ RUN mkdir /Project/spacy_model && mkdir /Project/data
 
 WORKDIR /Project/
 
-RUN python3 -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")' && cp ./nltk/corpora/stopwords/english ./spacy_model/english_stopwords && rm -r ./nltk
+RUN python3 -c 'import nltk; nltk.download("stopwords", download_dir="./nltk/")' && \ 
+    cp ./nltk/corpora/stopwords/english ./spacy_model/english_stopwords && \
+    rm -r ./nltk
 
 RUN python3 parser.py create_model
 
@@ -94,15 +104,16 @@ EXPOSE 8030 8031 8032 8033 8040 8042 8088
 EXPOSE 49707 2122 9000
 #SPARK PORTS
 EXPOSE 4040 4041 8080
-#4041 is a backup in case there are two sessions
+#4041 is a backup in case there are two spark sessions
 
-RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ""
-RUN cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+RUN ssh-keygen -t rsa -f /root/.ssh/id_rsa -N "" && \
+    cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 COPY hadoop-docker/start.sh /
 RUN chmod +x start.sh
 
 ENV HADOOP_DATA "hdfs://localhost:9000/TextMining"
 
+WORKDIR /Project
 
 ENTRYPOINT ./start.sh
