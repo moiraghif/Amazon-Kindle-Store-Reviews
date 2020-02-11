@@ -13,9 +13,11 @@ Special tanks to [Jianmo Ni](https://nijianmo.github.io/) for let us download hi
 Execute [`./docker_builder.sh`](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/docker_builder.sh): this script will create the docker environment; it will take time, otherwise use the docker-compose file to download one already created and pushed to the docker hub. 
 As soon as the docker starts, it will automatically start HDFS daemon and transfer the data into Hadoop File System (using the [./hadoop-docker/start.sh](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/hadoop-docker/start.sh) script as entry point). 
 
-#### **To use the docker image already created and uploaded to docker hub:**
+#### **To use the docker image already created and uploaded to docker hub(it's faster):**
 
-Run `docker run -it pkasela/amazon_review_hadoop_spark:final` in the project folder and wait :).
+Run anywhere:
+`docker run -it -p 8888:8888 -p 4040:4040 pkasela/amazon_review_hadoop_spark:final` 
+It contains the code folder and everything necessary for it to work.
 
 
 ## Data Preparation
