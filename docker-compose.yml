@@ -2,7 +2,7 @@ version: '3'
 
 services:
     amazon_docker:
-        image: pkasela/amazon_review_hadoop_spark
+        image: pkasela/amazon_review_hadoop_spark:final
         container_name: amazon_in_apache
         ports:
             - 8088:8088
