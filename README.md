@@ -26,7 +26,7 @@ It takes around 1 or 2 hours (depending on hardware): it has been tested with 8 
 
 ## The jupyter notebooks
 
-Now that data is ready, just start `jupyter-notebook` and open any of the Jupyter Notebook: docker's port 8888 should be mapped on your port 8888.
+Now that data is ready, just start `jupyter-notebook --ip 0.0.0.0 --allow-root` and open any of the Jupyter Notebook: docker's port 8888 should be mapped on your port 8888.
 
 The [`Regression_scala.ipynb`](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/Regression_scala.ipynb) contains the Spark code written in Scala regarding the two classification tasks.
 The [`pyspark_notebook.ipynb`](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/pyspark_notebook.ipynb) instead contains all the Spark code written in Python regarding all the other tasks.
