@@ -3,6 +3,8 @@
 Analysis of reviews from [Amazon Kindle Store](https://nijianmo.github.io/amazon/index.html) 
 Special tanks to [Jianmo Ni](https://nijianmo.github.io/) for let us download his data.
 
+## Presenation on Prezi: [Click Here](https://prezi.com/p/3ahifvn7zbad/)
+
 
 # How to use
 
@@ -32,3 +34,12 @@ Now that data is ready, just start `jupyter-notebook --ip 0.0.0.0 --allow-root` 
 
 The [`Regression_scala.ipynb`](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/Regression_scala.ipynb) contains the Spark code written in Scala regarding the two classification tasks.
 The [`pyspark_notebook.ipynb`](https://github.com/moiraghif/Amazon-Rating-Prediction/blob/master/pyspark_notebook.ipynb) instead contains all the Spark code written in Python regarding all the other tasks.
+
+# About Us
+
+| Who are we       | Roll No.        |
+|------------------|-----------------|
+| Federico Moiraghi| 799735          |
+| Pranav Kasela    | 846965          |
+| Roberto Berlucchi| 847939          |
+    
